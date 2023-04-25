@@ -1,18 +1,18 @@
 pipeline {
     agent any
-    tools {
-        terraform 'terraform'
-    }
+
     environment {
+        PIPELINE_NAME = "wordpress"
+        TF_FOLDER = "infra-tf"
         DOCKER_HUB_USERNAME = "ycetindil" // Should match with the var.docker_hub_username
         APP_NAME = "wordpress" // Should match with the var.prefix
     }
 
     stages {
 
-        stage('Build App Docker Images') {
+        stage('Build App Docker Image') {
             steps {
-                echo 'Building App Images'
+                echo 'Building App Image'
                 sh 'docker build --force-rm -t "$DOCKER_HUB_USERNAME/$APP_NAME" .'
                 sh 'docker image ls'
             }
@@ -37,18 +37,22 @@ pipeline {
         stage('Create Infrastructure for the App') {
             steps {
                 sh 'az login --identity'
-                echo 'Creating Infrastructure for the App'
-                sh 'terraform init'
-                sh 'terraform apply --auto-approve'
+                dir("/var/lib/jenkins/workspace/${PIPELINE_NAME}/${TF_FOLDER}") {
+                    echo 'Creating Infrastructure for the App'
+                    sh 'terraform init'
+                    sh 'terraform apply --auto-approve'
+                }
             }
         }
 
         stage('Destroy the Infrastructure') {
             steps{
                 timeout(time:5, unit:'DAYS'){
-                    input message:'Do you want to terminate?'
+                    input message:'Do you want to destroy the infrastructure?'
                 }
-                sh 'terraform destroy --auto-approve'
+                dir("/var/lib/jenkins/workspace/${PIPELINE_NAME}/${TF_FOLDER}") {
+                    sh 'terraform destroy --auto-approve'
+                }
             }
         }
     }

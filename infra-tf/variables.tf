@@ -25,5 +25,6 @@ variable "db_password" {
 
 # Container Instance
 variable "docker_hub_username" {
-  default = "ycetindil"
+  description = "Should match with the Jenkinsfile"
+  default     = "ycetindil"
 }
