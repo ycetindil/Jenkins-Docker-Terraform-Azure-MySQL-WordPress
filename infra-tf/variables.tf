@@ -1,5 +1,6 @@
 variable "prefix" {
-  default = "wordpress"
+  description = "Should match with the Jenkinsfile"
+  default     = "wordpress"
 }
 
 # Resource group
